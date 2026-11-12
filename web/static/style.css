@@ -1,0 +1,362 @@
+/* 【初学者阅读说明】CSS 负责外观，不执行模型计算。
+ * 规则格式是：选择器 { 属性: 值; }。点号选 class，井号选 id，空格表示后代元素。
+ * :hover 表示鼠标悬停，:disabled 表示禁用状态，@media 根据屏幕宽度应用不同布局。
+ * 部分 .company-logo/.title-logo 规则是教材保留样式；当前 HTML 没有对应图片时不会显示它们。
+ */
+
+/* :root 选中根元素；下面定义可复用的全局 CSS 变量。 */
+:root {
+    /* 声明自定义变量；后续可用 var(--primary-color) 读取，便于统一修改主题。 */
+    --primary-color: #e5e9ed;
+    /* 声明自定义变量；后续可用 var(--success-color) 读取，便于统一修改主题。 */
+    --success-color: #67C23A;
+    /* 声明自定义变量；后续可用 var(--warning-color) 读取，便于统一修改主题。 */
+    --warning-color: #E6A23C;
+    /* 声明自定义变量；后续可用 var(--danger-color) 读取，便于统一修改主题。 */
+    --danger-color: #F56C6C;
+    /* 声明自定义变量；后续可用 var(--text-color) 读取，便于统一修改主题。 */
+    --text-color: #303133;
+    /* 声明自定义变量；后续可用 var(--border-color) 读取，便于统一修改主题。 */
+    --border-color: #161617;
+    /* 声明自定义变量；后续可用 var(--container-padding) 读取，便于统一修改主题。 */
+    --container-padding: 40px;
+}
+/* 选择下面这些 HTML 标签并应用大括号内的外观设置。 */
+html, body {
+    /* 元素高度；px 是像素，% 相对包含块尺寸，vh 是浏览器可视高度的百分比 */
+    height: 100%;
+    /* 元素外面的间距；一个值管四边，两个值是上下/左右，auto 常用于居中 */
+    margin: 0;
+    /* 边框以内、内容以外的内间距；与 margin 的位置不同 */
+    padding: 0;
+    /* 背景色或渐变；linear-gradient 按角度在多种颜色之间过渡 */
+    background: #f5f7fa;
+}
+/* 选择下面这些 HTML 标签并应用大括号内的外观设置。 */
+body {
+    /* 字体候选顺序；浏览器从左到右找本机可用字体 */
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    /* 边框以内、内容以外的内间距；与 margin 的位置不同 */
+    padding: 20px;
+    /* 允许的最小高度；内容更多时仍可继续增高 */
+    min-height: 100vh;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.company-logo {
+    /* 定位方式；relative 仍保留原位置，absolute 通常相对最近的已定位祖先定位 */
+    position: absolute;
+    /* 定位元素距离参考容器顶边的偏移 */
+    top: 10px; /* 距离容器顶部间距 */
+    /* 定位元素距离参考容器右边的偏移 */
+    right: 10px; /* 距离容器右侧间距 */
+    /* 元素高度；px 是像素，% 相对包含块尺寸，vh 是浏览器可视高度的百分比 */
+    height: 50px;
+    /* 层叠顺序，适用于相应定位/布局元素；较大的数通常显示在前面 */
+    z-index: 100;
+    /* 边框以内、内容以外的内间距；与 margin 的位置不同 */
+    padding: 8px;
+    /* 背景色或渐变；linear-gradient 按角度在多种颜色之间过渡 */
+    background: white;
+    /* 圆角半径；数值越大通常越圆，四个值按四个角分别指定 */
+    border-radius: 8px 8px 8px 8px;
+    /* 阴影：依次指定水平/垂直偏移、模糊等参数和颜色，rgba 最后一项是透明度 */
+    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.08);
+    /* 移除旧定位属性 */
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.container {
+    /* 宽度上限，防止大屏幕上内容拉得过宽 */
+    max-width: 1400px;
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+    /* 元素外面的间距；一个值管四边，两个值是上下/左右，auto 常用于居中 */
+    margin: 30px auto 0;
+    /* 背景色或渐变；linear-gradient 按角度在多种颜色之间过渡 */
+    background: white;
+    /* 边框以内、内容以外的内间距；与 margin 的位置不同 */
+    padding: var(--container-padding);
+    /* 圆角半径；数值越大通常越圆，四个值按四个角分别指定 */
+    border-radius: 12px;
+    /* 阴影：依次指定水平/垂直偏移、模糊等参数和颜色，rgba 最后一项是透明度 */
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+    /* 允许的最小高度；内容更多时仍可继续增高 */
+    min-height: calc(100vh - 100px);
+    /* 定位方式；relative 仍保留原位置，absolute 通常相对最近的已定位祖先定位 */
+    position: relative;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.title-container {
+    /* 布局方式：flex 是弹性布局、grid 是网格布局、none 是不显示并不占布局位置 */
+    display: flex;
+    /* 在 Flex 等布局的交叉轴上对齐子元素；center 让它们居中对齐 */
+    align-items: center;
+    /* 子元素之间的间隔，适用于 Flex/Grid 等布局 */
+    gap: 20px;
+    /* 元素下方的外间距 */
+    margin-bottom: 30px;
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.title-logo {
+    /* 元素高度；px 是像素，% 相对包含块尺寸，vh 是浏览器可视高度的百分比 */
+    height: 40px; /* 根据你的图片调整高度 */
+    /* 元素下方的外间距 */
+    margin-bottom: 5px;
+    /* 布局方式：flex 是弹性布局、grid 是网格布局、none 是不显示并不占布局位置 */
+    display: block;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.title-divider {
+    /* 元素高度；px 是像素，% 相对包含块尺寸，vh 是浏览器可视高度的百分比 */
+    height: 40px;
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 3px;
+    /* 只设置背景颜色；var(...) 读取前面声明的 CSS 自定义变量 */
+    background-color: var(--border-color);
+}
+/* 选择下面这些 HTML 标签并应用大括号内的外观设置。 */
+h1 {
+    /* 文字大小；此处 px 是屏幕 CSS 像素 */
+    font-size: 20px;
+    /* 元素外面的间距；一个值管四边，两个值是上下/左右，auto 常用于居中 */
+    margin: 0 0 0 0;
+    /* 底部内间距 */
+    padding-bottom: 0;
+    /* 单独设置下边框；宽度为 0 时不显示线条 */
+    border-bottom: 0 solid var(--primary-color);
+    /* 布局方式：flex 是弹性布局、grid 是网格布局、none 是不显示并不占布局位置 */
+    display: inline-block;
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.button-group {
+    /* 布局方式：flex 是弹性布局、grid 是网格布局、none 是不显示并不占布局位置 */
+    display: flex;
+    /* 在主轴上分配空间；space-between 将首尾贴边、中间等距分布 */
+    justify-content: space-between;
+    /* 子元素之间的间隔，适用于 Flex/Grid 等布局 */
+    gap: 20px;
+    /* 元素下方的外间距 */
+    margin-bottom: 30px;
+    /* 是否允许 Flex 子元素换行；wrap 可以在窄屏下折行 */
+    flex-wrap: wrap;
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.upload_button {
+    /* 背景图尺寸；当前未提供图标图片时，此设置不会凭空产生图标 */
+    background-size: 20px;
+    /* 背景图是否重复；no-repeat 表示只绘制一次 */
+    background-repeat: no-repeat;
+    /* 背景图在元素内的位置；没有背景图时此属性不产生可见图标 */
+    background-position: 10px center;
+    /* 左侧内间距，为文字或预留图标位置留空间 */
+    padding-left: 40px;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.denoising_button {
+    /* 背景图尺寸；当前未提供图标图片时，此设置不会凭空产生图标 */
+    background-size: 20px;
+    /* 背景图是否重复；no-repeat 表示只绘制一次 */
+    background-repeat: no-repeat;
+    /* 背景图在元素内的位置；没有背景图时此属性不产生可见图标 */
+    background-position: 10px center;
+    /* 左侧内间距，为文字或预留图标位置留空间 */
+    padding-left: 40px;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.classification_button {
+    /* 背景图尺寸；当前未提供图标图片时，此设置不会凭空产生图标 */
+    background-size: 20px;
+    /* 背景图是否重复；no-repeat 表示只绘制一次 */
+    background-repeat: no-repeat;
+    /* 背景图在元素内的位置；没有背景图时此属性不产生可见图标 */
+    background-position: 10px center;
+    /* 左侧内间距，为文字或预留图标位置留空间 */
+    padding-left: 40px;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.similarity_button {
+    /* 背景图尺寸；当前未提供图标图片时，此设置不会凭空产生图标 */
+    background-size: 20px;
+    /* 背景图是否重复；no-repeat 表示只绘制一次 */
+    background-repeat: no-repeat;
+    /* 背景图在元素内的位置；没有背景图时此属性不产生可见图标 */
+    background-position: 10px center;
+    /* 左侧内间距，为文字或预留图标位置留空间 */
+    padding-left: 40px;
+}
+/* 确保所有按钮变体都有背景 */
+.upload_button,
+.denoising_button,
+.classification_button,
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.similarity_button {
+    /*background-image: linear-gradient(145deg, var(--primary-color), #a9b9cc);*/
+    /* 文字颜色；# 后的十六进制数是 RGB 颜色表示 */
+    color: #574d4d;
+}
+/* 选择下面这些 HTML 标签并应用大括号内的外观设置。 */
+button {
+    /* 边框以内、内容以外的内间距；与 margin 的位置不同 */
+    padding: 12px 24px;
+    /* 圆角半径；数值越大通常越圆，四个值按四个角分别指定 */
+    border-radius: 8px;
+    /* 文字大小；此处 px 是屏幕 CSS 像素 */
+    font-size: 15px;
+    /* 属性改变时的过渡动画；例如 0.2s 是持续 0.2 秒 */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    /* 阴影：依次指定水平/垂直偏移、模糊等参数和颜色，rgba 最后一项是透明度 */
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    /* 边框宽度、线型和颜色，例如 1px solid 是一像素实线 */
+    border: none; /* 移除边框 */
+    /* 设置背景色 */
+    /* Flex 子项如何分配空间；这里 1 让按钮尽量均分可用宽度 */
+    flex: 1; /* 让按钮均匀分布 */
+    /* 最小宽度，避免按钮或内容被挤得太窄 */
+    min-width: 120px; /* 设置最小宽度 */
+    /* 文字的水平对齐方式；center 表示居中 */
+    text-align: center;
+    /* 背景色或渐变；linear-gradient 按角度在多种颜色之间过渡 */
+    background: linear-gradient(145deg, var(--primary-color), #314a67);
+}
+/* 伪类 :hover 只在鼠标指向元素时生效，用于交互反馈。 */
+button:hover {
+    /* 视觉变换；translateY 的负值把元素向上挪，不直接改写 HTML 内容 */
+    transform: translateY(-2px);
+    /* 阴影：依次指定水平/垂直偏移、模糊等参数和颜色，rgba 最后一项是透明度 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    /* 背景色或渐变；linear-gradient 按角度在多种颜色之间过渡 */
+    background: linear-gradient(145deg, #a9b9cc, var(--primary-color));
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.preview-container {
+    /* 布局方式：flex 是弹性布局、grid 是网格布局、none 是不显示并不占布局位置 */
+    display: grid;
+    /* 网格列宽；repeat(5,1fr) 表示五等份，auto-fit/minmax 可按空间自动换列 */
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    /* 子元素之间的间隔，适用于 Flex/Grid 等布局 */
+    gap: 10px;
+    /* 元素外面的间距；一个值管四边，两个值是上下/左右，auto 常用于居中 */
+    margin: 10px 0;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.preview-card h3 {
+    /* 元素上方的外间距 */
+    margin-top: 0;
+    /* 元素下方的外间距 */
+    margin-bottom: 10px;
+    /* 边框以内、内容以外的内间距；与 margin 的位置不同 */
+    padding: 12px;
+    /* 圆角半径；数值越大通常越圆，四个值按四个角分别指定 */
+    border-radius: 10px;
+    /* 背景色或渐变；linear-gradient 按角度在多种颜色之间过渡 */
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    /* 阴影：依次指定水平/垂直偏移、模糊等参数和颜色，rgba 最后一项是透明度 */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    /* 属性改变时的过渡动画；例如 0.2s 是持续 0.2 秒 */
+    transition: transform 0.3s ease;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.preview-card:hover {
+    /* 视觉变换；translateY 的负值把元素向上挪，不直接改写 HTML 内容 */
+    transform: translateY(-5px);
+}
+.preview-image,
+.noised-image,
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.denoising-image {
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+    /* 元素高度；px 是像素，% 相对包含块尺寸，vh 是浏览器可视高度的百分比 */
+    height: 192px;
+    /* 圆角半径；数值越大通常越圆，四个值按四个角分别指定 */
+    border-radius: 8px;
+    /* 边框宽度、线型和颜色，例如 1px solid 是一像素实线 */
+    border: 1px solid var(--border-color);
+    /* 背景色或渐变；linear-gradient 按角度在多种颜色之间过渡 */
+    background: white;
+    /* 图片如何适应显示框；contain 保留完整图片比例，可能留白，不裁掉内容 */
+    object-fit: contain;
+    /* 元素下方的外间距 */
+    margin-bottom: 0;
+}
+/* 井号选择唯一 id；只对对应页面控件应用下面的样式。 */
+#image-upload {
+    /* 尺寸计算规则；border-box 让 width/height 包含内边距和边框 */
+    box-sizing: border-box;
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+    /* 边框以内、内容以外的内间距；与 margin 的位置不同 */
+    padding: 12px;
+    /* 边框宽度、线型和颜色，例如 1px solid 是一像素实线 */
+    border: 2px dashed var(--border-color);
+    /* 圆角半径；数值越大通常越圆，四个值按四个角分别指定 */
+    border-radius: 8px;
+    /* 元素下方的外间距 */
+    margin-bottom: 25px;
+    /* 属性改变时的过渡动画；例如 0.2s 是持续 0.2 秒 */
+    transition: border-color 0.3s;
+}
+/* 井号选择唯一 id；只对对应页面控件应用下面的样式。 */
+#image-upload:hover {
+    /* 边框颜色，不改变边框的宽度和线型 */
+    border-color: #ed8308;
+}
+/* 井号选择唯一 id；只对对应页面控件应用下面的样式。 */
+#result-text {
+    /* 尺寸计算规则；border-box 让 width/height 包含内边距和边框 */
+    box-sizing: border-box;
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+    /* 边框以内、内容以外的内间距；与 margin 的位置不同 */
+    padding: 15px;
+    /* 边框宽度、线型和颜色，例如 1px solid 是一像素实线 */
+    border: 1px solid var(--border-color);
+    /* 圆角半径；数值越大通常越圆，四个值按四个角分别指定 */
+    border-radius: 8px;
+    /* 文字大小；此处 px 是屏幕 CSS 像素 */
+    font-size: 16px;
+    /* 允许的最小高度；内容更多时仍可继续增高 */
+    min-height: 20px;
+    /* 背景色或渐变；linear-gradient 按角度在多种颜色之间过渡 */
+    background: #f8f9fa;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.similar-images {
+    /* 布局方式：flex 是弹性布局、grid 是网格布局、none 是不显示并不占布局位置 */
+    display: grid;
+    /* 网格列宽；repeat(5,1fr) 表示五等份，auto-fit/minmax 可按空间自动换列 */
+    grid-template-columns: repeat(5, 1fr);
+    /* 在主轴上分配空间；space-between 将首尾贴边、中间等距分布 */
+    justify-content: space-between;
+    /* 子元素之间的间隔，适用于 Flex/Grid 等布局 */
+    gap: 15px;
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+}
+/* 点号选择 class；这些规则作用于 HTML 中具有对应 class 的元素。 */
+.similar-images img {
+    /* 元素宽度；100% 通常占满父容器可用宽度 */
+    width: 100%;
+    /* 元素高度；px 是像素，% 相对包含块尺寸，vh 是浏览器可视高度的百分比 */
+    height: 160px;
+    /* 图片如何适应显示框；contain 保留完整图片比例，可能留白，不裁掉内容 */
+    object-fit: contain;
+    /* 圆角半径；数值越大通常越圆，四个值按四个角分别指定 */
+    border-radius: 6px;
+}
+
+/* * 匹配所有元素，统一让边框和内边距计入尺寸。 */
+* { box-sizing: border-box; }
+/* 状态文字预留高度并使用醒目颜色，错误提示出现时减少布局跳动。 */
+#status { min-height: 1.5em; color: #9b2929; }
+/* 按钮 disabled 时淡化并显示等待指针，配合 JS 的请求锁。 */
+button:disabled { opacity: .55; cursor: wait; }
+/* 属性选择器匹配 hidden 元素；!important 保证它们隐藏，避免被其他 display 规则覆盖。 */
+[hidden] { display: none !important; }
+/* 屏幕不超过 700px 时减少边距、三栏预览改一栏、商品列表改两栏，便于手机阅读。 */
+@media(max-width: 700px) { .container { padding: 16px; } .preview-container { grid-template-columns: 1fr; } .similar-images { grid-template-columns: repeat(2, 1fr); } }

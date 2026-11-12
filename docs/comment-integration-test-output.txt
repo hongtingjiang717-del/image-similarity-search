@@ -1,0 +1,14 @@
+test_01_dataset_and_shapes (tests.test_project.ProjectIntegrationTest.test_01_dataset_and_shapes) ... ok
+Epoch 1/1: train=0.016156, val=0.016534
+Epoch 1/1: train=1.650581, val=2.058514
+Epoch 1/1: train=0.016928, val=0.017408
+test_02_train_all_modules (tests.test_project.ProjectIntegrationTest.test_02_train_all_modules) ... ok
+索引写入：3/8
+索引写入：6/8
+索引写入：8/8
+test_03_index_and_http (tests.test_project.ProjectIntegrationTest.test_03_index_and_http) ... ok
+
+----------------------------------------------------------------------
+Ran 3 tests in 5.489s
+
+OK

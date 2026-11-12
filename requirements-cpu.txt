@@ -1,0 +1,10 @@
+# 【初学者说明】新建 CPU 环境时使用的依赖入口；它复用下面 -r 指向的通用清单。
+# 在已有兼容 CPU torch/torchvision 环境中执行 pip install -r requirements.txt 即可。
+# 新环境使用本文件，明确从 CPU wheel 源安装 torch/torchvision。
+--extra-index-url https://download.pytorch.org/whl/cpu
+# == 表示固定版本；+cpu 是此处选择的 CPU 构建标识。
+torch==2.15.0+cpu
+# 与上一行组合使用，避免 torch/torchvision 安装到不兼容的版本。
+torchvision==0.29.2+cpu
+# -r 表示继续读取另一个依赖文件，补齐图像处理、Web 与数据库工具。
+-r requirements.txt
