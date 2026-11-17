@@ -1,20 +1,50 @@
-# 【初学者阅读说明】
-# 此文件是任务接口；真正共享的循环实现在 common/engine.py。
-# train_step 有 optimizer 参数会更新权重，val_step 没有优化器只统计效果。
+import torch
+#训练一个轮次,返回平均损失
+def train_epoch(model, device, train_loader, loss_fn,optimizer):
+    model.train()  #开启训练模式
+    train_loss = 0.0
+    for input, target in train_loader:
+        input, target = input.to(device), target.to(device)
+        #前向传播
+        output = model(input)
+        loss = loss_fn(output, target)
+        loss.backward()
+        #更新参数
+        optimizer.step()
+        #梯度清零
+        optimizer.zero_grad()
+        #累加损失
+        train_loss += loss.item()
+    #计算本轮平均损失,len(train_loader)批次数量
+    return train_loss / len(train_loader)
 
-"""一个 epoch 的训练和验证；共享引擎负责模式切换与损失汇总。"""
-# 从 common.engine 导入 run_epoch；函数/类在对应文件实现，本文件直接复用。
-from common.engine import run_epoch
+#验证一个轮次,返回平均验证损失
+def val_step(model, device, val_loader, loss_fn):
+    model.eval()  #开启验证模式
+    val_loss = 0.0
+    #禁用梯度计算以节省内存和计算资源
+    with torch.no_grad():
+        for input, target in val_loader:
+            input, target = input.to(device), target.to(device)
+            #前向传播
+            output = model(input)
+            loss = loss_fn(output, target)
+            #累加损失
+            val_loss += loss.item()
+    #计算本轮平均损失,len(train_loader)批次数量
+    return val_loss / len(val_loader)
 
-# 指定 from 模块 import * 时公开哪些名字；不会自动创建这些类或函数。
-__all__ = ["train_step", "val_step"]
-
-# 遍历一轮训练数据，并更新参数；device 是计算设备，loss_fn 衡量预测与目标的差异。
-def train_step(denoiser, train_loader, loss_fn, optimizer, device):
-    # 把当前模型及前向计算方式交给公共引擎，直接返回一整轮的平均损失。
-    return run_epoch([denoiser], denoiser, train_loader, loss_fn, device, optimizer)
-
-# 遍历一轮验证数据，只衡量当前模型效果；不接收优化器，不更新参数。
-def val_step(denoiser, val_loader, loss_fn, device):
-    # 把当前模型及前向计算方式交给公共引擎，直接返回一整轮的平均损失。
-    return run_epoch([denoiser], denoiser, val_loader, loss_fn, device)
+#测试一个轮次,返回评价指标-平均测试误差
+def test_step(model, device, test_loader, loss_fn):
+    model.eval()
+    test_loss = 0.0
+    with torch.no_grad():
+        for input, target in test_loader:
+            input, target = input.to(device), target.to(device)
+            #前向传播
+            output = model(input)
+            loss = loss_fn(output, target)
+            #累加损失
+            test_loss += loss.item()
+    #计算本轮平均损失,len(train_loader)批次数量
+    return test_loss / len(test_loader)

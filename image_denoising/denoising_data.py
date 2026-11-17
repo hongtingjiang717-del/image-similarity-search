@@ -1,49 +1,61 @@
-# 在公共图片数据集上增加“加噪声”操作，生成用于学习的图片对。
-# 返回顺序固定为 (noisy, clean)：带噪声图片是输入，干净原图是希望模型恢复的目标。
-# 像素已缩放到 [0,1]；高斯噪声可正可负，最后 clamp 把结果裁回合法范围。
-# 训练噪声每次变化；验证传入 noise_seed 后，对同一索引固定噪声，便于比较不同轮次。
-
-"""干净图像加高斯噪声，返回（带噪输入，干净目标）。"""
-# 导入 torch，使用张量、神经网络计算及自动求导
-import torch
-# 从 common.data 导入 ImageFolderDataset, sorted_alphanumeric；函数/类在对应文件实现，本文件直接复用。
-from common.data import ImageFolderDataset, sorted_alphanumeric
-# 包内相对导入：前面的点表示当前包；从 本包 取出 denoising_config as config，避免误找同名顶层模块。
-from . import denoising_config as config
-
-# 指定 from 模块 import * 时公开哪些名字；不会自动创建这些类或函数。
+#========数据预处理===========================================
+# 定义模块的公开接口，仅暴露ImageDataset类
 __all__ = ["ImageDataset"]
 
-# 定义 ImageDataset 数据集类并继承父类能力；只重写与当前任务不同的部分。
-class ImageDataset(ImageFolderDataset):
-    # 创建对象时自动执行的初始化方法；self 表示正在创建的这个对象。
-    # self.xxx 把数据保存在对象中，让这个对象的其他方法以后也能使用。
-    def __init__(self, main_dir, transform=None, noise_factor=config.NOISE_FACTOR, noise_seed=None):
-        # 调用父类的数据集初始化，复用图片枚举和预处理逻辑，避免重复实现。
-        super().__init__(main_dir, transform)
-        # 检查数值参数的合法范围，不允许负噪声强度或非正的批次/结果数量。
-        if noise_factor < 0:
-            # 主动抛出有说明的异常，停止当前错误路径；上层命令行或 Flask 错误处理器决定如何向用户展示。
-            raise ValueError("noise_factor 不能为负数")
-        # 保存噪声强度，供后续每次取图片时使用。
-        self.noise_factor = noise_factor
-        # 保存可选噪声种子；None 表示每次使用正常随机噪声，整数表示固定验证噪声。
-        self.noise_seed = noise_seed
+from PIL import Image  # 导入PIL库中的Image模块，用于图像处理
+import os  # 导入os库，用于处理文件和目录路径
 
-    # Python 执行 dataset[idx] 时自动调用这个方法；DataLoader 也通过它逐个取样本。
-    def __getitem__(self, idx):
-        # 读取当前索引对应的干净原图，作为去噪训练的目标。
-        clean = self.load_image(idx)
-        # 训练使用随机噪声；验证按图片索引固定噪声，避免每轮验证条件变化。
-        # 先不创建专用发生器，默认使用 PyTorch 当前随机源。
-        generator = None
-        # is not None 判断调用者是否提供固定种子；None 表示没有指定。
-        if self.noise_seed is not None:
-            # 为当前图片创建固定种子的发生器；同一索引可复现噪声，不同索引使用不同种子。
-            generator = torch.Generator().manual_seed(self.noise_seed + idx)
-        # 生成与干净图片形状、数值类型、设备一致的标准正态噪声；均值 0，标准差 1。
-        noise = torch.randn(clean.shape, dtype=clean.dtype, device=clean.device, generator=generator)
-        # 原图加缩放后的噪声；clamp 将小于 0 的值设为 0、大于 1 的值设为 1。
-        noisy = (clean + self.noise_factor * noise).clamp(0, 1)
-        # 按（带噪输入，干净目标）顺序返回；训练循环会用两个变量接住这两个对象。
-        return noisy, clean
+from sympy.core import random
+from torch.utils.data import Dataset, random_split  # 从PyTorch的工具库中导入Dataset类，用于自定义数据集
+import denoising_config
+from denoising_config import *
+from common.utils import sorted_alphanumeric
+import torch
+import torchvision.transforms as T  # 用于图像预处理
+import numpy as np
+
+
+
+class ImageDataset(Dataset):  # 定义一个名为ImageDataset的类，继承自PyTorch的Dataset类
+    def __init__(self, main_dir, transform=None):  # 定义类的构造函数，接受两个参数：main_dir（主目录路径）和transform（图像预处理操作，默认为None）
+        self.main_dir = main_dir  # 将主目录路径保存为类的属性
+        self.transform = transform  # 将图像预处理操作保存为类的属性
+        self.all_imgs = sorted_alphanumeric(os.listdir(main_dir))  # 获取所有图像文件名并按字母数字顺序排序
+
+    def __len__(self):  # 定义__len__方法，返回数据集中图像的数量
+        return len(self.all_imgs)  # 返回主目录下图像文件的数量
+
+    def __getitem__(self, idx):  # 定义__getitem__方法，根据索引idx获取图像
+        img_loc = os.path.join(self.main_dir, self.all_imgs[idx])  # 根据索引idx构建图像的完整路径
+        image = Image.open(img_loc).convert("RGB")  # 使用PIL库打开图像并将其转换为RGB格式
+
+        if self.transform is not None:  # 如果定义了图像预处理操作
+            tensor_image = self.transform(image)  # 对图像进行预处理，并将其转换为张量
+        else:
+            # 若无变换，抛出异常提示必须提供预处理
+            raise ValueError("transform参数不能为None，需指定预处理方法")
+
+        ## 向输入图像添加随机噪声
+        # 生成与 tensor_image 形状相同的随机噪声，乘以噪声因子 noise_factor
+        noisy_imgs = tensor_image + denoising_config.NOISE_FACTOR * torch.randn(*tensor_image.shape)
+        # 将图像像素值裁剪到 [0, 1] 范围内，避免超出有效范围
+        noisy_imgs = torch.clip(noisy_imgs, 0., 1.)
+
+        return noisy_imgs, tensor_image  # 返回预处理后的图像张量（将噪声图片作为输入，将原图作为目标）
+
+#创建并切分数据集  的方法
+def create_dataset():
+    #定义转换操作
+    transform = T.Compose([
+        T.Resize((64, 64)),  # 调整图像大小为 256x256
+        T.ToTensor(),  # 将图像转换为 PyTorch 张量
+    ])
+    dataset = ImageDataset(main_dir=IMG_PATH, transform=transform)
+    #划分数据集
+    train_dataset,val_dataset,test_dataset = random_split(dataset,[TRAIN_RATIO,VAL_RATIO,TEST_RATIO])
+    return train_dataset,val_dataset,test_dataset
+
+if __name__ == "__main__":
+    dataset = ImageDataset(IMG_PATH)
+    print(len(dataset))
+    print(dataset.all_imgs)

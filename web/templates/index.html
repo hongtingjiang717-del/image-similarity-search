@@ -1,86 +1,435 @@
-<!-- 声明这是 HTML5 页面，让浏览器按现代 HTML 规则解析。 -->
 <!DOCTYPE html>
-<!-- 页面根元素；lang="zh-CN" 说明主要语言是简体中文。 -->
 <html lang="zh-CN">
-<!-- head 保存网页元信息和样式引用，通常不直接显示为正文。 -->
 <head>
-    <!-- 使用 UTF-8 解码页面，避免中文变成乱码。 -->
     <meta charset="UTF-8">
-    <!-- 让移动浏览器按设备宽度布局；initial-scale=1.0 表示初始缩放比例为 1。 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- 浏览器标签页上的标题，不是页面正文中的大标题。 -->
-    <title>智图寻宝</title>
-    <!-- 引入 CSS 文件；其中的 url_for 调用是 Jinja 模板表达式，由 Python 在发送页面前生成正确静态地址。 -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<!-- body 里面是用户能看到并操作的页面内容。 -->
-<body>
-<!-- div 是容器标签；class="container" 让 CSS 的 .container 规则控制整体布局。 -->
-<div class="container">
+    <title>商品识图助手 · 图片识别与相似搜索</title>
+    <meta name="description" content="上传商品图片，进行图片去噪、商品分类和相似图片搜索。">
+    <link rel="icon" type="image/png" href="{{ url_for('serve_logo', filename='product-image-assistant.png') }}">
+    <style>
+        :root {
+            --primary-color: #e5e9ed;
+            --success-color: #67C23A;
+            --warning-color: #E6A23C;
+            --danger-color: #F56C6C;
+            --text-color: #303133;
+            --border-color: #161617;
+            --container-padding: 40px;
+        }
 
-    <!-- 把项目名、分隔线和标题放进同一个 Flex 容器，便于横向对齐。 -->
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #f5f7fa;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .company-logo {
+            position: absolute;
+            top: 10px; /* 距离容器顶部间距 */
+            right: 10px; /* 距离容器右侧间距 */
+            height: 50px;
+            z-index: 100;
+            padding: 8px;
+            background: white;
+            border-radius: 8px 8px 8px 8px;
+            box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.08);
+            /* 移除旧定位属性 */
+        }
+
+        .container {
+            max-width: 1400px;
+            width: 100%;
+            margin: 30px auto 0;
+            background: white;
+            padding: var(--container-padding);
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            min-height: calc(100vh - 100px);
+            position: relative;
+            background-image: url("../pictures/bg.png");
+        }
+
+        .title-container {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+
+        .brand-logo {
+            width: 64px;
+            height: 64px;
+            object-fit: contain;
+            flex: 0 0 auto;
+        }
+
+        .brand-copy h1 {
+            width: auto;
+            color: #19355a;
+            font-size: clamp(22px, 4vw, 30px);
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .brand-copy p {
+            margin: 8px 0 0;
+            color: #66758a;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 480px) {
+            .title-container { gap: 12px; }
+            .brand-logo { width: 48px; height: 48px; }
+            .brand-copy p { font-size: 12px; }
+        }
+
+        .title-logo {
+            height: 40px; /* 根据你的图片调整高度 */
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .title-divider {
+            height: 40px;
+            width: 3px;
+            background-color: var(--border-color);
+        }
+
+        h1 {
+            font-size: 20px;
+            margin: 0 0 0 0;
+            padding-bottom: 0;
+            border-bottom: 0 solid var(--primary-color);
+            display: inline-block;
+            width: 100%;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .upload_button {
+            background-image: url('../pictures/upload-icon.png');
+            background-size: 20px;
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            padding-left: 40px;
+        }
+
+        .denoising_button {
+            background-image: url('../pictures/denoise-icon.png');
+            background-size: 20px;
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            padding-left: 40px;
+        }
+
+        .classification_button {
+            background-image: url('../pictures/classify-icon.png');
+            background-size: 20px;
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            padding-left: 40px;
+        }
+
+        .similarity_button {
+            background-image: url('../pictures/similarity-icon.png');
+            background-size: 20px;
+            background-repeat: no-repeat;
+            background-position: 10px center;
+            padding-left: 40px;
+        }
+
+        /* 确保所有按钮变体都有背景 */
+        .upload_button,
+        .denoising_button,
+        .classification_button,
+        .similarity_button {
+            /*background-image: linear-gradient(145deg, var(--primary-color), #a9b9cc);*/
+            color: #574d4d;
+        }
+
+        button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+            border: none; /* 移除边框 */
+            /* 设置背景色 */
+            flex: 1; /* 让按钮均匀分布 */
+            min-width: 120px; /* 设置最小宽度 */
+            text-align: center;
+            background: linear-gradient(145deg, var(--primary-color), #314a67);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            background: linear-gradient(145deg, #a9b9cc, var(--primary-color));
+        }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .preview-card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #ffffff, #f8f9fa);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s ease;
+        }
+
+        .preview-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .preview-image,
+        .noised-image,
+        .denoising-image {
+            width: 100%;
+            height: 192px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: white;
+            object-fit: contain;
+            margin-bottom: 0;
+        }
+
+        #image-upload {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 12px;
+            border: 2px dashed var(--border-color);
+            border-radius: 8px;
+            margin-bottom: 25px;
+            transition: border-color 0.3s;
+        }
+
+
+        #image-upload:hover {
+            border-color: #ed8308;
+        }
+
+        #result-text {
+            box-sizing: border-box;
+            width: 100%;
+            padding: 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            min-height: 20px;
+            background: #f8f9fa;
+        }
+
+        .similar-images {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            justify-content: space-between;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .similar-images img {
+            width: 100%;
+            height: 160px;
+            object-fit: contain;
+            border-radius: 6px;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
     <div class="title-container">
-        <!-- 语义上强调项目名称；不依赖缺失的品牌图片也能显示文字标题。 -->
-        <strong>智图寻宝</strong>
-        <!-- 空容器通过 CSS 的宽度、高度和背景色画出分隔线。 -->
-        <div class="title-divider"></div>
-        <!-- 页面主标题；h1/h3 表示标题层级，不只是字号大小。 -->
-        <h1>智能商品识别系统</h1>
+        <img src="{{ url_for('serve_logo', filename='product-image-assistant.png') }}"
+             alt="图片框与放大镜标志"
+             class="brand-logo" width="64" height="64">
+        <div class="brand-copy">
+            <h1>商品识图助手</h1>
+            <p>图片去噪 · 商品分类 · 相似图片搜索</p>
+        </div>
     </div>
-    <!-- 文件选择框；id 供 JS 精确查找，accept 是浏览器的选图提示，后端仍需验证真实图片。 -->
+
     <input type="file" id="image-upload" accept="image/*">
-<!-- label 包含复选框和说明；checked 表示默认勾选，JS 读取 checked 决定是否演示加噪。 -->
-<label><input type="checkbox" id="add-noise" checked> 演示加噪后去噪</label>
-<!-- 预留状态提示；role 和 aria-live 帮助屏幕阅读器感知状态变化。 -->
-<p id="status" role="status" aria-live="polite"></p>
-    <!-- 把四个操作按钮分为一组；CSS 负责布局，JS 根据每个按钮 id 登记点击动作。 -->
+
     <div class="button-group">
-        <!-- 本地选择/预览图片按钮；实际上传模型接口的请求由各业务按钮发出。 -->
         <button id="upload_button" class="upload_button">上传图片</button>
-        <!-- 点击后向 /denoising 发 POST 请求，显示模型输入图和去噪图。 -->
         <button id="denoising_button" class="denoising_button">图像去噪</button>
-        <!-- 点击后向 /classification 上传去噪结果或原图，展示类别。 -->
         <button id="classification_button" class="classification_button">商品分类</button>
-        <!-- 点击后向 /simimages 上传图片并展示相似商品。 -->
         <button id="similarity_button" class="similarity_button">相似商品</button>
     </div>
-    <!-- 三张对比图的网格容器；CSS 会根据屏幕宽度自动排列。 -->
+
     <div class="preview-container">
-        <!-- 单张图片与其标题组成一张卡片；三个同名 class 复用同一套样式。 -->
         <div class="preview-card">
-            <!-- 当前区域的小标题，说明下面是原图、模型输入、恢复结果还是其他功能区。 -->
             <h3>原始图片</h3>
-            <!-- 原图元素初始 hidden；JS 选图后设置 src 并取消隐藏。alt 是无法显示图片时的替代文字。 -->
-            <img class="preview-image" id="image-preview" hidden alt="Image Preview">
+            <img class="preview-image" id="image-preview" src="" alt="Image Preview">
         </div>
-        <!-- 单张图片与其标题组成一张卡片；三个同名 class 复用同一套样式。 -->
         <div class="preview-card">
-            <!-- 当前区域的小标题，说明下面是原图、模型输入、恢复结果还是其他功能区。 -->
             <h3>噪声图片</h3>
-            <!-- 模型输入图的展示位置，初始隐藏，去噪成功后由 JS 填入 Base64 图片。 -->
-            <img class="noised-image" id="image-noised" hidden alt="Denoised Image">
+            <img class="noised-image" id="image-noised" src="" alt="Denoised Image">
         </div>
-        <!-- 单张图片与其标题组成一张卡片；三个同名 class 复用同一套样式。 -->
         <div class="preview-card">
-            <!-- 当前区域的小标题，说明下面是原图、模型输入、恢复结果还是其他功能区。 -->
             <h3>去噪结果</h3>
-            <!-- 恢复结果的展示位置；图片文件由后端模型产生，不是 CSS 绘制出来的。 -->
-            <img class="denoising-image" id="image-denoising" hidden alt="Denoised Image">
+            <img class="denoising-image" id="image-denoising" src="" alt="Denoised Image">
         </div>
     </div>
+
     <div>
-        <!-- 当前区域的小标题，说明下面是原图、模型输入、恢复结果还是其他功能区。 -->
         <h3>分类结果</h3>
-        <!-- 只读多行文本框；readonly 阻止手动修改结果，但 JS 仍可更新 value。 -->
         <textarea id="result-text" rows="1" readonly></textarea>
     </div>
-    <!-- 当前区域的小标题，说明下面是原图、模型输入、恢复结果还是其他功能区。 -->
+
     <h3>相似商品推荐</h3>
-    <!-- 初始为空；JS 根据检索结果逐项创建 img 并加入这里。 -->
     <div class="similar-images" id="similar-images"></div>
 </div>
 
-<!-- 加载 JS；defer 表示等待 HTML 解析完再执行，保证 JS 能找到前面的页面元素。 -->
-<script src="{{ url_for('static', filename='app.js') }}" defer></script>
+<!-- 原script内容保持不变 -->
+
+<script>
+    const fileInput = document.getElementById('image-upload');
+    const imagePreview = document.getElementById('image-preview');
+    const imageNoised = document.getElementById('image-noised'); // 新增去噪图片引用
+    const imageDenoising = document.getElementById('image-denoising'); // 新增去噪图片引用
+    const similarImagesDiv = document.getElementById('similar-images');
+
+    document.getElementById('upload_button').onclick = function () {
+
+        if (fileInput.files.length === 0) {
+            alert("请先选择一张图片！");
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            imagePreview.src = e.target.result;
+        };
+        reader.readAsDataURL(fileInput.files[0]);
+    }
+
+    document.getElementById('denoising_button').onclick = function () {
+        console.log('=============> 去噪 <=============');
+
+        if (!imagePreview.src.startsWith("data:image")) {
+            alert("请先选择一张图片！");
+            return;
+        }
+
+
+        fetch(imagePreview.src)
+            .then(response => response.blob())
+            .then(blob => {
+                const formData = new FormData();
+                formData.append('image', blob);
+
+                // 发送请求
+                fetch('/denoising', {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // 更新去噪图片的src
+                        imageNoised.src = `data:image/png;base64,${data.noisy_img}`;
+                        imageDenoising.src = `data:image/png;base64,${data.denoised_image}`;
+                    })
+                    .catch(error => {
+                        console.error('错误:', error);
+                    });
+            });
+    };
+
+    document.getElementById('classification_button').onclick = function () {
+        console.log('=============> 分类 <=============');
+
+        if (!imageDenoising.src.startsWith("data:image")) {
+            alert("请先去噪！");
+            return;
+        }
+
+        fetch(imageDenoising.src)
+            .then(response => response.blob())
+            .then(blob => {
+                const formData = new FormData();
+                formData.append('image', blob);
+                fetch('/classification', {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then(response => response.text())
+                    .then(text => {
+                        document.getElementById('result-text').value = text;
+                    })
+                    .catch(error => {
+                        console.error('错误:', error);
+                    });
+            });
+    };
+
+    document.getElementById('similarity_button').onclick = function () {
+
+        console.log('=============> 相似度检索 <=============');
+
+
+        if (!imageDenoising.src.startsWith("data:image")) {
+            alert("请先去噪！");
+            return;
+        }
+
+        // 将 imageDenoising.src 转换为 Blob
+        fetch(imageDenoising.src)
+            .then(response => response.blob())
+            .then(blob => {
+                const formData = new FormData();
+                formData.append('image', blob);
+
+                // 发送请求到后端
+                fetch('/simimages', {
+                    method: 'POST',
+                    body: formData,
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        // 清空之前的相似图片
+                        similarImagesDiv.innerHTML = '';
+
+                        // 显示相似的图片
+                        console.log(data.indices_list);
+                        data.indices_list.forEach(index => {
+                            const img = document.createElement('img');
+                            img.src = `dataset/${index}.jpg`;  // 假设输出图片的命名规则为 index.jpg
+                            similarImagesDiv.appendChild(img);
+                        });
+                    })
+                    .catch(error => {
+                        console.error('错误:', error);
+                    });
+            })
+            .catch(error => {
+                console.error('错误:', error);
+            });
+    };
+</script>
 </body>
 </html>

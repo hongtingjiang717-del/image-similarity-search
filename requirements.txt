@@ -1,18 +1,12 @@
-# 【初学者说明】这是 pip 的依赖清单，不是 Python 程序。
-# 用 python -m pip install -r requirements.txt 读取；# 后面的文字是注释。
-# >= 表示允许的最低版本，< 表示不包含在内的最高版本，例如 >=1.26,<3。
-# 首先按 README 安装对应平台的 CPU 或 CUDA torch / torchvision。
-# PyTorch：张量、自动求导、神经网络、优化器。
-torch>=2.8,<2.16
-# 视觉工具：图片缩放和 ToTensor 等；需与 torch 版本兼容。
-torchvision>=0.23,<0.31
-# 数值数组工具：显示图片、检查向量、存取 npy。
-numpy>=1.26,<3
-# 图片文件工具：代码通过 from PIL import Image 使用 Pillow。
-Pillow>=10,<14
-# 绘图工具：保存三行去噪对比图。
-matplotlib>=3.8,<4
-# Web 框架：处理浏览器请求、HTML 模板与 JSON 响应。
-Flask>=3,<4
-# 向量数据库：持久化 512 维特征，并检索相近图片。
-chromadb>=1.5,<2
+# Direct dependencies; versions are not locked.
+# Install a matching torch/torchvision pair for CPU or CUDA.
+torch
+torchvision
+numpy
+pandas
+Pillow
+Flask
+chromadb
+matplotlib
+tqdm
+sympy
